@@ -32,8 +32,6 @@ import android.widget.MediaController.MediaPlayerControl;
 import com.baidu.music.ffplaylib.jni.LivePlayer;
 import com.baidu.music.ffplaylib.jni.LivePlayer.TimeShiftInfo;
 
-//import android.media.MediaPlayer;
- 
 /**
  * Displays a video file.  The VideoView class
  * can load images from various sources (such as resources or content
@@ -175,11 +173,10 @@ public class VideoView extends SurfaceView implements MediaPlayerControl {
         }
     }
 
-    SurfaceHolder.Callback mSHCallback = new SurfaceHolder.Callback()
-    {
+    SurfaceHolder.Callback mSHCallback = new SurfaceHolder.Callback() {
+        @Override
         public void surfaceChanged(SurfaceHolder holder, int format,
-                                    int w, int h)
-        {
+                                    int w, int h) {
         	Log.d(TAG, "surfaceChanged, format="+format+", w="+w+", h="+h);
             if (mLivePlayer != null && mVideoWidth == w && mVideoHeight == h) {
                 //mLivePlayer.start();
@@ -189,8 +186,8 @@ public class VideoView extends SurfaceView implements MediaPlayerControl {
             }
         }
 
-        public void surfaceCreated(SurfaceHolder holder)
-        {
+        @Override
+        public void surfaceCreated(SurfaceHolder holder) {
         	Log.d(TAG, "surfaceCreated, holder="+holder);
             mSurfaceHolder = holder;
             if(mLivePlayer != null)
@@ -199,8 +196,8 @@ public class VideoView extends SurfaceView implements MediaPlayerControl {
             }
         }
 
-        public void surfaceDestroyed(SurfaceHolder holder)
-        {
+        @Override
+        public void surfaceDestroyed(SurfaceHolder holder) {
             // after we return from this we can't use the surface any more
         	Log.d(TAG, "surfaceDestroyed, holder="+holder);
             mSurfaceHolder = null;
@@ -230,8 +227,7 @@ public class VideoView extends SurfaceView implements MediaPlayerControl {
     }
 
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event)
-    {
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
     	if ( keyCode == KeyEvent.KEYCODE_BACK )
     	{
 			stopPlayback();
@@ -248,6 +244,7 @@ public class VideoView extends SurfaceView implements MediaPlayerControl {
         }
     }
 
+    @Override
     public void start() {
         if (mLivePlayer != null) {
         	mLivePlayer.start();
@@ -255,6 +252,7 @@ public class VideoView extends SurfaceView implements MediaPlayerControl {
         }
     }
 
+    @Override
     public void pause() {
         if (mLivePlayer != null) {
             if (mLivePlayer.isPlaying()) {
@@ -263,6 +261,7 @@ public class VideoView extends SurfaceView implements MediaPlayerControl {
         }
     }
 
+    @Override
     public int getDuration() {
         if (mLivePlayer != null) {
             return mLivePlayer.getDuration();
@@ -270,6 +269,7 @@ public class VideoView extends SurfaceView implements MediaPlayerControl {
         return -1;
     }
 
+    @Override
     public int getCurrentPosition() {
        if (mLivePlayer != null) {
             return mLivePlayer.getCurrentPosition();
@@ -277,6 +277,7 @@ public class VideoView extends SurfaceView implements MediaPlayerControl {
         return 0;
     }
 
+    @Override
     public void seekTo(int msec) {
         if (mLivePlayer != null) {
         	if(mLivePlayer.isSeekable())
@@ -286,14 +287,15 @@ public class VideoView extends SurfaceView implements MediaPlayerControl {
         }
     }
 
+    @Override
     public boolean isPlaying() {
         if (mLivePlayer != null) {
             return mLivePlayer.isPlaying();
         }
         return false;
     }
-    public int  SetTimeShiftInfo(TimeShiftInfo TShiftInfo)
-    {
+
+    public int  SetTimeShiftInfo(TimeShiftInfo TShiftInfo) {
     	
     	 if (mLivePlayer != null) {
              return mLivePlayer.SetTimeShiftInfo(TShiftInfo);
@@ -303,18 +305,26 @@ public class VideoView extends SurfaceView implements MediaPlayerControl {
     	 }
     	 return -1;
     }
+
+    @Override
     public int getBufferPercentage() {
     	
         return 0;
     }
+
+    @Override
     public boolean canPause() {
     	
         return true;
 	}
+
+    @Override
     public boolean canSeekBackward() {
     	
         return true;
 	}
+
+    @Override
     public boolean canSeekForward() {
     	
         return true;

@@ -1,22 +1,19 @@
 package com.baidu.music.ffplayer;
 
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.database.Cursor;
 import android.net.Uri;
-import android.provider.MediaStore;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.Window;
-import android.view.WindowManager;
+import android.provider.MediaStore;
 
 import com.baidu.music.ffplaylib.jni.LivePlayer;
 import com.baidu.music.ffplaylib.view.VideoView;
 
 import java.util.LinkedList;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
 
     private final static String TAG = "VideoPlayerActivity";
 
@@ -31,17 +28,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-
-        super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-
-
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
         processIntentData(getIntent());
     }
 
@@ -56,9 +43,7 @@ public class MainActivity extends AppCompatActivity {
                 {
                     return c.getString(c.getColumnIndex(MediaStore.Video.Media.DATA));
                 }
-            }
-            else if("file".equals(uri.getScheme()))
-            {
+            } else if("file".equals(uri.getScheme())) {
                 return uri.getPath();
 //				String path = uri.toString();
 //				//�ȶ��ַ���н���룬�����?�Ǳ��뷽ʽԭ�����
@@ -68,9 +53,7 @@ public class MainActivity extends AppCompatActivity {
 //				File file = new File(fileURI);
 //
 //				return file.getPath();
-            }
-            else if("http".equals(uri.getScheme()))
-            {
+            } else if("http".equals(uri.getScheme())) {
                 return uri.toString();
             }
         }

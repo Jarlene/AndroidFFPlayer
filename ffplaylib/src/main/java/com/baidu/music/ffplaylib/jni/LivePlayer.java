@@ -2,7 +2,6 @@ package com.baidu.music.ffplaylib.jni;
 
 import android.content.Context;
 import android.net.Uri;
-import android.os.Build;
 import android.os.PowerManager;
 import android.util.Log;
 import android.view.Surface;
@@ -10,34 +9,20 @@ import android.view.SurfaceHolder;
 
 public class LivePlayer {
     static {
-        Init();
-    }
-
-    private static final void Init() {
-        int version = Integer.parseInt(Build.VERSION.SDK);
-
-        mPackageName = "com.pbi.live";
-
-        System.loadLibrary("ffpcore");
-
-        if (version < 8) {
-            System.loadLibrary("ffplay-4-jni");
-        } else if (version == 8) {
-            System.loadLibrary("ffplay-8-jni");
-        } else if (version >= 9 && version < 14) {
-            System.loadLibrary("ffplay-9-jni");
-        } else if (version >= 14 && version < 16) {
-            System.loadLibrary("ffplay-14-jni");
-        } else if (version == 16 || version == 17) {
-            System.loadLibrary("ffplay-16-jni");
-        } else if (version >= 18 && version <= 20) {
-            System.loadLibrary("ffplay-18-jni");
-        } else {
-            System.loadLibrary("ffplay-18-jni");
+        try {
+            System.loadLibrary("swscale-2");
+            System.loadLibrary("avutil-51");
+            System.loadLibrary("avfilter-3");
+            System.loadLibrary("avformat-54");
+            System.loadLibrary("swresample-0");
+            System.loadLibrary("avdevice-54");
+            System.loadLibrary("avcodec-54");
+            System.loadLibrary("FFPlayer");
+        } catch (Throwable e) {
+            e.printStackTrace();
         }
-
-        native_init();
     }
+
 
     private static final int LOG_LEVEL_EMERG = 0;
     private static final int LOG_LEVEL_FATAL = 1;
@@ -66,39 +51,39 @@ public class LivePlayer {
         public long mFileSize;
     }
 
-    private static native final void native_init();
+    private static native final void nativeInit();
 
-    private native final void native_setup(Object mediaplayer_this);
+    private native final void nativeSetup(Object mediaplayer_this);
 
-    private native final void native_finalize();
+    private native final void nativeFinalize();
 
-    private native int _setLogLevel(int level);
+    private native int nativeSetLogLevel(int level);
 
-    private native int _setDisplayType(int DType);
+    private native int nativeSetDisplayType(int DType);
 
-    private native int _setVideoSurface();
+    private native int nativeSetVideoSurface();
 
-    private native int _setDataSource(String path, int type);
+    private native int nativeSetDataSource(String path, int type);
 
-    private native int _start();
+    private native int nativeStart();
 
-    private native int _stop();
+    private native int nativeStop();
 
-    private native int _pause();
+    private native int nativePause();
 
-    private native int _seek(int msec);
+    private native int nativeSeek(long msec);
 
-    private native int _release();
+    private native int nativeRelease();
 
-    private native int _reset();
+    private native int nativeReset();
 
-    private native int _setVolume(float leftVolume, float rightVolume);
+    private native int nativeSetVolume(float leftVolume, float rightVolume);
 
-    private native int _getDuration();
+    private native int nativeGetDuration();
 
-    public native int getVideoWidth();
+    public native int nativeGetVideoWidth();
 
-    public native int getVideoHeight();
+    public native int nativeGetVideoHeight();
 
     public native boolean isPlaying();
 
@@ -130,13 +115,13 @@ public class LivePlayer {
         /* Native setup requires a weak reference to our object.
          * It's easier to create it here than in C++.
          */
-        native_setup(this);
-        _setLogLevel(LOG_LEVEL_VERBOSE);
+        nativeSetup(this);
+        nativeSetLogLevel(LOG_LEVEL_VERBOSE);
     }
 
     public int setDisplayType(int DType) {
         if (DType >= DType_Auto_Scale && DType <= DType_16_9_Scale) {
-            return _setDisplayType(DType);
+            return setDisplayType(DType);
         }
         return -1;
     }
@@ -148,7 +133,7 @@ public class LivePlayer {
         } else {
             mSurface = null;
         }
-        int ret = _setVideoSurface();
+        int ret = nativeSetVideoSurface();
         if (ret < 0) {
             Log.d(TAG, "setVideoSurface fail!");
         }
@@ -167,12 +152,12 @@ public class LivePlayer {
         if (scheme == null || scheme.equals("file")) {
             int ret = 0;
 
-            if (uri.getPath().endsWith("mpg"))
-                ret = _setDataSource("http://127.0.0.1:9906/p2p-live/124.219.23.162:3001/null/e6d903419621022afd29ff5c3c700366",
+            if (uri.getPath().endsWith("mpg")) {
+                ret = nativeSetDataSource("",
                         MEDIA_PLAY_LIVE);
-            else
-                ret = _setDataSource(uri.toString(), MEDIA_PLAY_LOCAL);
-
+            } else {
+                ret = nativeSetDataSource(uri.toString(), MEDIA_PLAY_LOCAL);
+            }
             if (ret < 0) {
                 Log.d(TAG, "setDataSource fail!");
             }
@@ -272,7 +257,7 @@ public class LivePlayer {
      */
     public void start() throws IllegalStateException {
         stayAwake(true);
-        _start();
+        nativeStart();
     }
 
     /**
@@ -283,7 +268,7 @@ public class LivePlayer {
      */
     public void stop() throws IllegalStateException {
         stayAwake(false);
-        _stop();
+        nativeStop();
     }
 
     /**
@@ -294,7 +279,7 @@ public class LivePlayer {
      */
     public void pause() throws IllegalStateException {
         stayAwake(false);
-        _pause();
+        nativePause();
     }
 
     /**
@@ -306,14 +291,15 @@ public class LivePlayer {
     public void seekTo(int msec) throws IllegalStateException {
         stayAwake(false);
         if (isSeekable()) {
-            _seek(msec);
+            nativeSeek(msec);
         }
     }
 
     public int getDuration() {
-        int duration = _getDuration();
-        if (duration < 0)
+        int duration = nativeGetDuration();
+        if (duration < 0) {
             return -1;
+        }
         return duration;
     }
 
@@ -325,7 +311,7 @@ public class LivePlayer {
     public void release() {
         stayAwake(false);
         updateSurfaceScreenOn();
-        _release();
+        nativeRelease();
     }
 
     /**
@@ -335,11 +321,11 @@ public class LivePlayer {
      */
     public void reset() {
         stayAwake(false);
-        _reset();
+        nativeReset();
     }
 
     public int setVolume(float leftVolume, float rightVolume) {
-        return _setVolume(leftVolume, rightVolume);
+        return nativeSetVolume(leftVolume, rightVolume);
     }
 
     /**

@@ -2,15 +2,34 @@ import org.apache.tools.ant.taskdefs.condition.Os
 
 apply plugin: 'com.android.library'
 
+
 android {
-    compileSdkVersion 19
-    buildToolsVersion "19.1.0"
+    compileSdkVersion 23
+    buildToolsVersion "23.0.3"
 
     defaultConfig {
         minSdkVersion 8
         targetSdkVersion 11
         versionCode 1000
         versionName "1.0.0.0"
+        ndk {
+            moduleName "FFPlayer"
+            stl "stlport_static"
+            cFlags "-std=gnu++11"
+            abiFilters "armeabi", "armeabi-v7a"
+            String basePath = new File("./").canonicalPath + "/ffplaylib/src/main/jniLibs/armeabi/"
+            String libavcodec =  basePath + "libavcodec-54.so"
+            String libavdevice = basePath + "libavdevice-54.so"
+            String libavfilter = basePath + "libavfilter-3.so"
+            String libavformat = basePath + "libavformat-54.so"
+            String libavutil = basePath + "libavutil-51.so"
+            String libswresample = basePath + "libswresample-0.so"
+            String libswscale = basePath + "libswscale-2.so"
+
+            ldLibs "log",libavcodec, libavdevice, libavfilter, libavformat, libavutil,libswresample,libswscale
+//          ldLibs "log", "-Lsrc/main/jni/ffmpeg/ffmpeg"
+//            ldLibs "log", "avcodec", "avformat", "avutil"
+        }
     }
     buildTypes {
         release {
@@ -20,12 +39,15 @@ android {
     }
     sourceSets {
         main {
-            jni.srcDirs = []
+            jni.srcDirs  "src/main/jni", "src/main/jni/include","src/main/jni/include/libavcodec","src/main/jni/include/libavdevice","src/main/jni/include/libavfilter",
+                    "src/main/jni/include/libavformat","src/main/jni/include/libavutil","src/main/jni/include/libswresample",
+                    "src/main/jni/include/libswscale"
+            jniLibs.srcDirs "src/main/jinLibs"
         }
     }
-    tasks.withType(JavaCompile) {
-        compileTask -> compileTask.dependsOn ndkBuild
-    }
+//    tasks.withType(JavaCompile) {
+//        compileTask -> compileTask.dependsOn ndkBuild
+//    }
 }
 
 def getNdkBuildFullPath() {
