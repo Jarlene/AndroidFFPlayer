@@ -79,8 +79,7 @@ public class MainActivity extends Activity {
     }
 
     @SuppressWarnings("null")
-    protected void processIntentData(Intent intent)
-    {
+    protected void processIntentData(Intent intent) {
         String path = null;
         if (intent.getAction() != null&& intent.getAction().equals(Intent.ACTION_VIEW ))
         {
@@ -104,25 +103,10 @@ public class MainActivity extends Activity {
             path = bundle.getString("file");
         }
 
-        if(vv == null)
-        {
+        if(vv == null) {
             vv = (VideoView)findViewById(R.id.vv);
-            LivePlayer.TimeShiftInfo TShiftInfo = new LivePlayer.TimeShiftInfo();
-
-            TShiftInfo.mbAllowTimeShift = true;
-            TShiftInfo.mFileName		= "/sdcard/ptvlive.cache";
-            TShiftInfo.mFileSize		= 100*1024*1024;
-
-            vv.SetTimeShiftInfo(TShiftInfo);
             vv.setVideoPath(path);
-        }
-        else
-        {
-            LivePlayer.TimeShiftInfo TShiftInfo = new LivePlayer.TimeShiftInfo();
-
-            TShiftInfo.mbAllowTimeShift = true;
-            TShiftInfo.mFileName		= "/sdcard/ptvlive.cache";
-            TShiftInfo.mFileSize		= 100*1024*1024;
+        } else {
             vv.setVideoPath(path);
         }
     }

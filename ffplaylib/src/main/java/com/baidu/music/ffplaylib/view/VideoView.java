@@ -30,7 +30,6 @@ import android.widget.MediaController;
 import android.widget.MediaController.MediaPlayerControl;
 
 import com.baidu.music.ffplaylib.jni.LivePlayer;
-import com.baidu.music.ffplaylib.jni.LivePlayer.TimeShiftInfo;
 
 /**
  * Displays a video file.  The VideoView class
@@ -50,7 +49,6 @@ public class VideoView extends SurfaceView implements MediaPlayerControl {
     
     // All the stuff we need for playing and showing a video
     private SurfaceHolder mSurfaceHolder = null;
-    private TimeShiftInfo mTShiftInfo = null;
     private LivePlayer mLivePlayer = null;
     private int         mVideoWidth;
     private int         mVideoHeight;
@@ -131,20 +129,11 @@ public class VideoView extends SurfaceView implements MediaPlayerControl {
             mLivePlayer = new LivePlayer();
         }
         try {
-        	/* test */
-        	if(mTShiftInfo == null)
-        		mTShiftInfo = new TimeShiftInfo();
-        	
-        	mTShiftInfo.mbAllowTimeShift = true;
-        	mTShiftInfo.mFileName		= "/sdcard/ptvlive.cache";
-        	mTShiftInfo.mFileSize		= 10*1024*1024;
-        	
-        	mLivePlayer.SetTimeShiftInfo(mTShiftInfo);
             mLivePlayer.setDisplay(mSurfaceHolder);
             
-            if(mLivePlayer.setDataSource(mContext, mUri)<0)
-            	return ;
-         
+            if(mLivePlayer.setDataSource(mContext, mUri)<0) {
+                return;
+            }
             mLivePlayer.setScreenOnWhilePlaying(true);
          
             attachMediaController();
@@ -248,7 +237,6 @@ public class VideoView extends SurfaceView implements MediaPlayerControl {
     public void start() {
         if (mLivePlayer != null) {
         	mLivePlayer.start();
-        } else {
         }
     }
 
@@ -295,44 +283,37 @@ public class VideoView extends SurfaceView implements MediaPlayerControl {
         return false;
     }
 
-    public int  SetTimeShiftInfo(TimeShiftInfo TShiftInfo) {
-    	
-    	 if (mLivePlayer != null) {
-             return mLivePlayer.SetTimeShiftInfo(TShiftInfo);
-         }
-    	 else{
-    		 mTShiftInfo = TShiftInfo;
-    	 }
-    	 return -1;
-    }
-
     @Override
     public int getBufferPercentage() {
-    	
         return 0;
     }
 
     @Override
     public boolean canPause() {
-    	
+    	if (mLivePlayer != null) {
+            return mLivePlayer.isCanPause();
+        }
         return true;
 	}
 
     @Override
     public boolean canSeekBackward() {
-    	
+    	if (mLivePlayer != null) {
+            mLivePlayer.isSeekable();
+        }
         return true;
 	}
 
     @Override
     public boolean canSeekForward() {
-    	
+        if (mLivePlayer != null) {
+            mLivePlayer.isSeekable();
+        }
         return true;
 	}
 
 	@Override
 	public int getAudioSessionId() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 

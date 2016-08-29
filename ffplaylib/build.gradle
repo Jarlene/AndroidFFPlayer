@@ -15,7 +15,7 @@ android {
         ndk {
             moduleName "FFPlayer"
             stl "stlport_static"
-            cFlags "-std=gnu++11"
+            cFlags "-std=gnu++11 -DGL_GLEXT_PROTOTYPES"
             abiFilters "armeabi", "armeabi-v7a"
             String basePath = new File("./").canonicalPath + "/ffplaylib/src/main/jniLibs/armeabi/"
             String libavcodec =  basePath + "libavcodec-54.so"
@@ -25,8 +25,10 @@ android {
             String libavutil = basePath + "libavutil-51.so"
             String libswresample = basePath + "libswresample-0.so"
             String libswscale = basePath + "libswscale-2.so"
+//            String libSDLMain = basePath + "libmain.so"
+//            String libSDL = basePath + "libSDL2.so"
 
-            ldLibs "log",libavcodec, libavdevice, libavfilter, libavformat, libavutil,libswresample,libswscale
+            ldLibs "log","GLESv2","dl", "GLESv1_CM","GLESv2", "android",libavcodec, libavdevice, libavfilter, libavformat, libavutil,libswresample,libswscale
 //          ldLibs "log", "-Lsrc/main/jni/ffmpeg/ffmpeg"
 //            ldLibs "log", "avcodec", "avformat", "avutil"
         }
@@ -41,7 +43,7 @@ android {
         main {
             jni.srcDirs  "src/main/jni", "src/main/jni/include","src/main/jni/include/libavcodec","src/main/jni/include/libavdevice","src/main/jni/include/libavfilter",
                     "src/main/jni/include/libavformat","src/main/jni/include/libavutil","src/main/jni/include/libswresample",
-                    "src/main/jni/include/libswscale"
+                    "src/main/jni/include/libswscale", "src/main/jni/SDL", "src/main/jni/SDL/include"
             jniLibs.srcDirs "src/main/jinLibs"
         }
     }

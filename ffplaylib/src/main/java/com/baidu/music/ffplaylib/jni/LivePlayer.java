@@ -8,6 +8,9 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 
 public class LivePlayer {
+
+    private final static String TAG = "LivePlayer";
+
     static {
         try {
             System.loadLibrary("swscale-2");
@@ -23,18 +26,6 @@ public class LivePlayer {
         }
     }
 
-
-    private static final int LOG_LEVEL_EMERG = 0;
-    private static final int LOG_LEVEL_FATAL = 1;
-    private static final int LOG_LEVEL_ALERT = 2;
-    private static final int LOG_LEVEL_CRIT = 3;
-    private static final int LOG_LEVEL_ERROR = 4;
-    private static final int LOG_LEVEL_INFO = 5;
-    private static final int LOG_LEVEL_WARN = 6;
-    private static final int LOG_LEVEL_NOTICE = 7;
-    private static final int LOG_LEVEL_DEBUG = 8;
-    private static final int LOG_LEVEL_VERBOSE = 9;
-
     public static final int DType_Auto_Scale = 0;
     public static final int DType_4_3_Scale = 1;
     public static final int DType_16_9_Scale = 2;
@@ -45,66 +36,7 @@ public class LivePlayer {
     public static final int MEDIA_PLAY_TSHIFT = 3;
     public static final int MEDIA_PLAY_ONDEMAND = 4;
 
-    static public class TimeShiftInfo {
-        public boolean mbAllowTimeShift;
-        public String mFileName;
-        public long mFileSize;
-    }
-
-    private static native final void nativeInit();
-
-    private native final void nativeSetup(Object mediaplayer_this);
-
-    private native final void nativeFinalize();
-
-    private native int nativeSetLogLevel(int level);
-
-    private native int nativeSetDisplayType(int DType);
-
-    private native int nativeSetVideoSurface();
-
-    private native int nativeSetDataSource(String path, int type);
-
-    private native int nativeStart();
-
-    private native int nativeStop();
-
-    private native int nativePause();
-
-    private native int nativeSeek(long msec);
-
-    private native int nativeRelease();
-
-    private native int nativeReset();
-
-    private native int nativeSetVolume(float leftVolume, float rightVolume);
-
-    private native int nativeGetDuration();
-
-    public native int nativeGetVideoWidth();
-
-    public native int nativeGetVideoHeight();
-
-    public native boolean isPlaying();
-
-    public native int getCurrentPosition();
-
-    public native boolean isSeekable();
-
-    public native boolean isCanPause();
-
-    public native int updateTShiftInfo();
-
-    public native boolean isTShiftRun();
-
-    public native int getPlayMode();
-
-    private final static String TAG = "LivePlayer";
-    private int mNativeContext; // accessed by native methods
-    private int mListenerContext; // accessed by native methods
     private Surface mSurface; // accessed by native methods
-    private TimeShiftInfo mTimeShiftInfo; //accessed by native methods
-    private static String mPackageName;
     private SurfaceHolder mSurfaceHolder;
     private PowerManager.WakeLock mWakeLock = null;
     private boolean mScreenOnWhilePlaying;
@@ -112,11 +44,6 @@ public class LivePlayer {
 
     public LivePlayer() {
 
-        /* Native setup requires a weak reference to our object.
-         * It's easier to create it here than in C++.
-         */
-        nativeSetup(this);
-        nativeSetLogLevel(LOG_LEVEL_VERBOSE);
     }
 
     public int setDisplayType(int DType) {
@@ -127,15 +54,14 @@ public class LivePlayer {
     }
 
     public void setDisplay(SurfaceHolder sh) {
-        mSurfaceHolder = sh;
-        if (sh != null) {
-            mSurface = sh.getSurface();
-        } else {
-            mSurface = null;
+        if (sh == null) {
+            throw new IllegalArgumentException("the param is null");
         }
-        int ret = nativeSetVideoSurface();
+        mSurfaceHolder = sh;
+        mSurface = sh.getSurface();
+        int ret = nativeSetVideoSurface(mSurface);
         if (ret < 0) {
-            Log.d(TAG, "setVideoSurface fail!");
+            Log.e(TAG, "setVideoSurface fail!");
         }
         updateSurfaceScreenOn();
     }
@@ -168,14 +94,6 @@ public class LivePlayer {
         }
     }
 
-    public int SetTimeShiftInfo(TimeShiftInfo TShiftInfo) {
-        //if(!isTShiftRun())
-        {
-            mTimeShiftInfo = TShiftInfo;
-            return updateTShiftInfo();
-        }
-        //return -1;
-    }
 
     public static final int MEDIA_OPENING = 1;
     public static final int MEDIA_OPENED = 2;
@@ -397,4 +315,25 @@ public class LivePlayer {
             mSurfaceHolder.setKeepScreenOn(mScreenOnWhilePlaying && mStayAwake);
         }
     }
+
+
+
+    private native int nativeSetDisplayType(int DType);
+    private native int nativeSetVideoSurface(Surface surface);
+    private native int nativeSetDataSource(String path, int type);
+    private native int nativeStart();
+    private native int nativeStop();
+    private native int nativePause();
+    private native int nativeSeek(long msec);
+    private native int nativeRelease();
+    private native int nativeReset();
+    private native int nativeSetVolume(float leftVolume, float rightVolume);
+    private native int nativeGetDuration();
+    public native int nativeGetVideoWidth();
+    public native int nativeGetVideoHeight();
+    public native boolean isPlaying();
+    public native int getCurrentPosition();
+    public native boolean isSeekable();
+    public native boolean isCanPause();
+    public native int getPlayMode();
 }

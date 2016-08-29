@@ -1,7 +1,32 @@
 //
 // Created by Jarlene on 16/6/8.
 //
-
+//    encode \\\
+//    av_register_all();
+//    avformat_alloc_output_context2();
+//    avio_open2();
+//    avformat_new_stream();
+//    avcodec_find_encoder();
+//    avcodec_open2();
+//    avformat_write_header();
+//    avcodec_encode_video2();
+//    av_write_frame();
+//    av_write_trailer();
+//    avcodec_close();
+//    avformat_free_context();
+//    avio_close();
+//
+//    decode \\\\
+//    av_register_all();
+//    avformat_alloc_context();
+//    avformat_open_input();
+//    avformat_find_stream_info();
+//    avcodec_find_decoder();
+//    avcodec_open2();
+//    av_read_frame();
+//    avcodec_decode_video2();
+//    avcodec_close();
+//    avformat_close_input();
 
 #include <jni.h>
 #include <stddef.h>
@@ -9,11 +34,11 @@
 
 #include "base/NativeException.h"
 #include "base/log.h"
-extern "C"
-{
+extern "C" {
 #include "include/libavformat/avformat.h"
 #include "include/libavcodec/avcodec.h"
 #include "include/libavutil/avutil.h"
+#include "SDL/src/core/android/SDL_android.h"
 }
 
 
@@ -21,33 +46,28 @@ extern "C"
 #define MAIN_CLASS "com/baidu/music/ffplaylib/jni/LivePlayer"
 static jclass mainClass;
 
+AVFormatContext *pFormatCtx;
+AVCodecContext *pCodecCtx;
+AVCodec *pCodec;
+AVFrame *pFrame;
+AVFrame *pFrameRGB;
+AVPacket packet;
+struct SwsContext *pSwsCtx;
 
-void nativeInit(JNIEnv* env, jclass clazz) {
-#ifdef PROFILER
-    #warning "Profiler enabled"
-	setenv("CPUPROFILE_FREQUENCY", "1000", 1);
-	monstartup("libffmpeg.so");
-#endif
-}
-
-void nativeSetup(JNIEnv* env, jclass clazz, jobject obj) {
-
-}
-
-void nativeFinalize(JNIEnv* env, jclass clazz) {
-
-}
-
-jint nativeSetLogLevel(JNIEnv* env, jclass clazz, jint level) {
-
-}
+int disPlayerType;
+jclass surfaceClass;
 
 jint nativeSetDisplayType(JNIEnv* env, jclass clazz, jint type) {
-
+    disPlayerType = type;
 }
 
-jint nativeSetVideoSurface(JNIEnv* env, jclass clazz) {
-
+jint nativeSetVideoSurface(JNIEnv* env, jclass clazz, jobject surface) {
+    surfaceClass = (jclass)env->NewGlobalRef(surface);
+    if (surfaceClass == NULL) {
+        return -1;
+    } else {
+        return 0;
+    }
 }
 
 jint nativeSetDataSource(JNIEnv* env, jclass clazz, jstring path, jint type) {
@@ -55,27 +75,17 @@ jint nativeSetDataSource(JNIEnv* env, jclass clazz, jstring path, jint type) {
         NativeException::throwNullPointerException(env, "the video path is null");
         return -1;
     }
-    jboolean iscopy;
+    jboolean iscopy = JNI_FALSE;
     const char *pathStr = env->GetStringUTFChars(path, &iscopy);
     if (pathStr == NULL) {
         NativeException::throwRuntimeException(env, "Out of memory");
         return -1;
     }
-    AVFormatContext* pFormatCtx;
-    AVCodecContext *pCodecCtx;
-    AVCodec *pCodec;
-    AVFrame *pFrame;
-    AVFrame *pFrameRGB;
-    AVPacket packet;
     int i, videoStream;
     int frameFinished = 0;
-    int numBytes;
-    uint8_t *buffer;
-    struct SwsContext *pSwsCtx;
 
     av_register_all();
     pFormatCtx=avformat_alloc_context();
-
     if (avformat_open_input(&pFormatCtx, pathStr, NULL, NULL) != 0) {
         return -1;
     }
@@ -101,16 +111,33 @@ jint nativeSetDataSource(JNIEnv* env, jclass clazz, jstring path, jint type) {
     if (avcodec_open2(pCodecCtx, pCodec,NULL) < 0) {
         return -1;
     }
+
     pFrame = avcodec_alloc_frame();
-    pFrameRGB = avcodec_alloc_frame();
-    if (pFrameRGB == NULL) {
-        return -1;
+    i=0;
+    while(av_read_frame(pFormatCtx, &packet)) {
+        if(packet.stream_index==videoStream) {
+            avcodec_decode_video2(pCodecCtx, pFrame, &frameFinished, &packet);
+            if (frameFinished) {
+                ++i;
+            }
+
+        }
     }
-    numBytes = avpicture_get_size(PIX_FMT_RGB24, pCodecCtx->width,
-                                  pCodecCtx->height);
-    buffer = (uint8_t *) av_malloc(numBytes * sizeof(uint8_t));
-    avpicture_fill((AVPicture *) pFrameRGB, buffer, PIX_FMT_RGB24,
-                   pCodecCtx->width, pCodecCtx->height);
+
+
+    av_free(pFrame);
+    avcodec_close(pCodecCtx);
+    avformat_close_input(&pFormatCtx);
+
+//    pFrameRGB = avcodec_alloc_frame();
+//    if (pFrameRGB == NULL) {
+//        return -1;
+//    }
+//    numBytes = avpicture_get_size(PIX_FMT_RGB24, pCodecCtx->width,
+//                                  pCodecCtx->height);
+//    buffer = (uint8_t *) av_malloc(numBytes * sizeof(uint8_t));
+//    avpicture_fill((AVPicture *) pFrameRGB, buffer, PIX_FMT_RGB24,
+//                   pCodecCtx->width, pCodecCtx->height);
     delete pathStr;
 
 }
@@ -174,14 +201,6 @@ jboolean isCanPause(JNIEnv* env, jclass clazz) {
 }
 
 
-jint updateTShiftInfo(JNIEnv* env, jclass clazz) {
-
-}
-
-jboolean isTShiftRun(JNIEnv* env, jclass clazz) {
-
-}
-
 jint getPlayMode(JNIEnv* env, jclass clazz) {
 
 }
@@ -190,12 +209,8 @@ jint getPlayMode(JNIEnv* env, jclass clazz) {
  * native方法映射
  */
 static JNINativeMethod nativeMethods[] = {
-        { "nativeInit",            "()V",                           (void*) nativeInit },
-        { "nativeSetup",           "(Ljava/lang/Object)V",          (void*) nativeSetup },
-        { "nativeFinalize",        "()V",                           (void*) nativeFinalize },
-        { "nativeSetLogLevel",     "(I)I",                          (void*) nativeSetLogLevel},
         { "nativeSetDisplayType",  "(I)I",                          (void*) nativeSetDisplayType},
-        { "nativeSetVideoSurface", "(V)I",                          (void*) nativeSetVideoSurface},
+        { "nativeSetVideoSurface", "(Landroid/view/Surface)I",      (void*) nativeSetVideoSurface},
         { "nativeSetDataSource",   "(Ljava/lang/String;)I",         (void*) nativeSetDataSource},
         { "nativeStart",           "(V)I",                          (void*) nativeStart},
         { "nativePause",           "(V)I",                          (void*) nativePause},
@@ -211,10 +226,7 @@ static JNINativeMethod nativeMethods[] = {
         { "getCurrentPosition",    "(V)I",                          (void*) getCurrentPosition},
         { "isSeekable",            "(V)Z",                          (void*) isSeekable},
         { "isCanPause",            "(V)Z",                          (void*) isCanPause},
-        { "updateTShiftInfo",      "(V)I",                          (void*) updateTShiftInfo},
-        { "isTShiftRun",           "(V)Z",                          (void*) isTShiftRun},
-        { "getPlayMode",           "(V)I",                          (void*) getPlayMode},
-
+        { "getPlayMode",           "(V)I",                          (void*) getPlayMode}
 };
 
 
@@ -263,7 +275,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
     }
     /* success -- return valid version number */
     result = JNI_VERSION_1_6;
-
+    JniOnload(vm, reserved);
     return result;
 }
 
