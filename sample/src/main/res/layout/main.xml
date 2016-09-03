@@ -1,13 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:gravity="center"
-    android:background="@color/background">
+    android:background="@color/colorPrimary">
 
-	<com.baidu.music.ffplaylib.view.VideoView
+    <com.baidu.music.ffplaylib.view.VideoView
 	android:id="@+id/vv"  
-    android:layout_width="fill_parent" 
-    android:layout_height="fill_parent" />
-</LinearLayout>
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+        android:layout_above="@+id/linearLayout2" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:id="@+id/linearLayout2">
+        <Button
+            android:id="@+id/play"
+            android:text="play"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <Button
+            android:id="@+id/pause"
+            android:text="pause"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <Button
+            android:id="@+id/stop"
+            android:text="pstop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+</RelativeLayout>

@@ -14,8 +14,8 @@ android {
         versionName "1.0.0.0"
         ndk {
             moduleName "FFPlayer"
-            stl "stlport_static"
-            cFlags "-std=gnu++11 -DGL_GLEXT_PROTOTYPES"
+            stl "gnustl_shared"
+            cFlags "-std=gnu++11"
             abiFilters "armeabi", "armeabi-v7a"
             String basePath = new File("./").canonicalPath + "/ffplaylib/src/main/jniLibs/armeabi/"
             String libavcodec =  basePath + "libavcodec-54.so"
@@ -43,7 +43,7 @@ android {
         main {
             jni.srcDirs  "src/main/jni", "src/main/jni/include","src/main/jni/include/libavcodec","src/main/jni/include/libavdevice","src/main/jni/include/libavfilter",
                     "src/main/jni/include/libavformat","src/main/jni/include/libavutil","src/main/jni/include/libswresample",
-                    "src/main/jni/include/libswscale", "src/main/jni/SDL", "src/main/jni/SDL/include"
+                    "src/main/jni/include/libswscale"
             jniLibs.srcDirs "src/main/jinLibs"
         }
     }

@@ -7,107 +7,73 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.view.View;
+import android.widget.Button;
 
 import com.baidu.music.ffplaylib.jni.LivePlayer;
 import com.baidu.music.ffplaylib.view.VideoView;
 
 import java.util.LinkedList;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements View.OnClickListener{
 
     private final static String TAG = "VideoPlayerActivity";
 
     private VideoView vv = null;
+    private Button play, pause, stop;
+    String path = null;
 
-    public static LinkedList<MovieInfo> playList = new LinkedList<MovieInfo>();
-    public class MovieInfo{
-        String displayName;
-        String path;
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        vv = (VideoView) findViewById(R.id.vv);
+        play = (Button) findViewById(R.id.play);
+        pause = (Button) findViewById(R.id.pause);
+        stop = (Button) findViewById(R.id.stop);
+
+        play.setOnClickListener(this);
+        stop.setOnClickListener(this);
+        pause.setOnClickListener(this);
         processIntentData(getIntent());
     }
 
-    protected String getSchemePath(Uri uri) {
-        if(uri != null)
-        {
-            if("content".equals(uri.getScheme()))
-            {
-                ContentResolver contentResolver = getContentResolver();
-                Cursor c = contentResolver.query(uri, null, null, null, null);
-                if(c.moveToFirst())
-                {
-                    return c.getString(c.getColumnIndex(MediaStore.Video.Media.DATA));
-                }
-            } else if("file".equals(uri.getScheme())) {
-                return uri.getPath();
-//				String path = uri.toString();
-//				//�ȶ��ַ���н���룬�����?�Ǳ��뷽ʽԭ�����
-//				path = Uri.decode(path);
-//				path = this.encodeFileName(path, "/");
-//				URI fileURI = URI.create(path);
-//				File file = new File(fileURI);
-//
-//				return file.getPath();
-            } else if("http".equals(uri.getScheme())) {
-                return uri.toString();
-            }
-        }
+    @Override
+    protected void onStart() {
+        super.onStart();
 
-        return "";
     }
 
-    /**
-     * ���ļ��л����ļ������ַ���б������
-     * @author song.lj
-     * @return String
-     */
-    private String encodeFileName(String path, String regular){
-        String[] parts = path.split(regular);
-        StringBuffer sb = new StringBuffer();
-        sb.append(parts[0]);
-        for(int i=1; i<parts.length; i++){
-            sb.append(regular);
-            sb.append(Uri.encode(parts[i]));
-        }
+    @Override
+    protected void onResume() {
+        super.onResume();
 
-        return sb.toString();
     }
 
-    @SuppressWarnings("null")
     protected void processIntentData(Intent intent) {
-        String path = null;
-        if (intent.getAction() != null&& intent.getAction().equals(Intent.ACTION_VIEW ))
-        {
-            /* Started from external application */
-            path = getSchemePath(intent.getData());
-
-            if (path == null || path.length() <= 1)
-            {
-                //finish();
-                return ;
-            }
+        if (intent == null) {
+            return;
         }
-        else
-        {
-            Bundle bundle = intent.getExtras();
-            if(bundle == null)
-            {
-//				this.finish();
-                return ;
-            }
-            path = bundle.getString("file");
-        }
+        path = intent.getStringExtra("file");
 
-        if(vv == null) {
-            vv = (VideoView)findViewById(R.id.vv);
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.play:
             vv.setVideoPath(path);
-        } else {
-            vv.setVideoPath(path);
+            vv.start();
+                break;
+            case R.id.pause:
+                vv.pause();
+                break;
+            case R.id.stop:
+                vv.stop();
+                break;
+            default:
+                break;
         }
     }
 }

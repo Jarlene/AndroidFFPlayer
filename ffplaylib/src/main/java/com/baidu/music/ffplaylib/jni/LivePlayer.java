@@ -79,10 +79,9 @@ public class LivePlayer {
             int ret = 0;
 
             if (uri.getPath().endsWith("mpg")) {
-                ret = nativeSetDataSource("",
-                        MEDIA_PLAY_LIVE);
+                ret = nativeSetDataSource("");
             } else {
-                ret = nativeSetDataSource(uri.toString(), MEDIA_PLAY_LOCAL);
+                ret = nativeSetDataSource(uri.toString());
             }
             if (ret < 0) {
                 Log.d(TAG, "setDataSource fail!");
@@ -91,77 +90,6 @@ public class LivePlayer {
         } else {
             Log.d(TAG, "unrecognized file" + uri.toString());
             return -1;
-        }
-    }
-
-
-    public static final int MEDIA_OPENING = 1;
-    public static final int MEDIA_OPENED = 2;
-    public static final int MEDIA_SYNCING = 3;
-    public static final int MEDIA_SYNC = 4;
-    public static final int MEDIA_BUFFERING = 5;
-    public static final int MEDIA_PLAYBACK_COMPLETE = 6;
-    public static final int MEDIA_SEEK_COMPLETE = 7;
-    public static final int MEDIA_PLAYING = 8;
-    public static final int MEDIA_PAUSED = 9;
-    public static final int MEDIA_TIMESHIFT = 10;
-    public static final int MEDIA_ERROR = 100;
-    public static final int MEDIA_INFO = 200;
-
-    public static final int TSHIFT_NOP = 0;
-    public static final int TSHIFT_BEGIN_RECORD = 1;
-    public static final int TSHIFT_PROGRESS = 2;
-    public static final int TSHIFT_END_RECORD = 3;
-    public static final int TSHIFT_OPEN_SRC_ERR = 4;
-    public static final int TSHIFT_OPEN_DST_ERR = 5;
-    public static final int TSHIFT_READ_SRC_ERR = 6;
-    public static final int TSHIFT_WRITE_DST_ERR = 7;
-    public static final int TSHIFT_PLAYER_OPEN_DST_ERR = 8;
-
-    private static void postEventFromNative(Object mediaplayer_ref,
-                                            int what, int arg1, int arg2, Object obj) {
-        LivePlayer Player = (LivePlayer) mediaplayer_ref;
-
-        if (what == MEDIA_OPENING) {
-            Log.d(TAG, "postEventFromNative: " + " MEDIA_OPENING " + what + " arg1 " + arg1 + " arg2 " + arg2);
-        } else if (what == MEDIA_OPENED) {
-            Log.d(TAG, "postEventFromNative: " + " MEDIA_OPENED " + what + " arg1 " + arg1 + " arg2 " + arg2);
-            Player.start();
-        } else if (what == MEDIA_SYNCING) {
-            Log.d(TAG, "postEventFromNative: " + " MEDIA_SYNCING " + what + " arg1 " + arg1 + " arg2 " + arg2);
-        } else if (what == MEDIA_SYNC) {
-            Log.d(TAG, "postEventFromNative: " + " MEDIA_SYNC " + what + " arg1 " + arg1 + " arg2 " + arg2);
-        } else if (what == MEDIA_BUFFERING) {
-            Log.d(TAG, "postEventFromNative: " + " MEDIA_BUFFERING " + what + " arg1 " + arg1 + " arg2 " + arg2);
-        } else if (what == MEDIA_PLAYBACK_COMPLETE) {
-            Log.d(TAG, "postEventFromNative: " + " MEDIA_PLAYBACK_COMPLETE " + what + " arg1 " + arg1 + " arg2 " + arg2);
-            if (Player.getPlayMode() == MEDIA_PLAY_TSHIFT) {
-                Log.d(TAG, "TimeShift Play has finished,turn to live mode or other view");
-            }
-        } else if (what == MEDIA_PLAYING) {
-            Log.d(TAG, "postEventFromNative: " + " MEDIA_PLAYING " + what + " arg1 " + arg1 + " arg2 " + arg2);
-        } else if (what == MEDIA_PAUSED) {
-            Log.d(TAG, "postEventFromNative: " + " MEDIA_PAUSED " + what + " arg1 " + arg1 + " arg2 " + arg2);
-        } else if (what == MEDIA_SEEK_COMPLETE) {
-            Log.d(TAG, "postEventFromNative: " + " MEDIA_SEEK_COMPLETE " + what + " arg1 " + arg1 + " arg2 " + arg2);
-        } else if (what == MEDIA_TIMESHIFT) {
-            if (arg1 == TSHIFT_BEGIN_RECORD) {
-                Log.d(TAG, "time shift begin record");
-            } else if (arg1 == TSHIFT_PROGRESS) {
-                //Log.d(TAG, "time shift begin record,arg2 is size "+arg2+" has record");
-            } else if (arg1 == TSHIFT_END_RECORD) {
-                Log.d(TAG, "time shift finish record");
-            }
-        } else if (what == MEDIA_ERROR) {
-            Log.d(TAG, "postEventFromNative: " + " MEDIA_ERROR IsPlaying " + Player.isPlaying() + " " + what + " arg1 " + arg1 + " arg2 " + arg2);
-            if (arg1 == MEDIA_TIMESHIFT) {
-                if (arg2 >= TSHIFT_OPEN_SRC_ERR && arg2 <= TSHIFT_WRITE_DST_ERR) {
-                    Log.d(TAG, "time shift record has error");
-                } else if (arg2 == TSHIFT_PLAYER_OPEN_DST_ERR) {
-                    Log.d(TAG, "time shift can't play");
-                }
-            }
-
         }
     }
 
@@ -316,11 +244,9 @@ public class LivePlayer {
         }
     }
 
-
-
     private native int nativeSetDisplayType(int DType);
     private native int nativeSetVideoSurface(Surface surface);
-    private native int nativeSetDataSource(String path, int type);
+    private native int nativeSetDataSource(String path);
     private native int nativeStart();
     private native int nativeStop();
     private native int nativePause();

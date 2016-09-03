@@ -54,6 +54,39 @@ public class VideoView extends SurfaceView implements MediaPlayerControl {
     private int         mVideoHeight;
     private MediaController mMediaController;
 
+    SurfaceHolder.Callback mSHCallback = new SurfaceHolder.Callback() {
+        @Override
+        public void surfaceChanged(SurfaceHolder holder, int format,
+                                   int w, int h) {
+            Log.d(TAG, "surfaceChanged, format="+format+", w="+w+", h="+h);
+            if (mLivePlayer != null && mVideoWidth == w && mVideoHeight == h) {
+                if (mMediaController != null) {
+                    mMediaController.show();
+                }
+            }
+        }
+
+        @Override
+        public void surfaceCreated(SurfaceHolder holder) {
+            Log.d(TAG, "surfaceCreated, holder="+holder);
+            mSurfaceHolder = holder;
+            if(mLivePlayer != null) {
+                mLivePlayer.setDisplay(mSurfaceHolder);
+            }
+        }
+
+        @Override
+        public void surfaceDestroyed(SurfaceHolder holder) {
+            // after we return from this we can't use the surface any more
+            Log.d(TAG, "surfaceDestroyed, holder="+holder);
+            mSurfaceHolder = null;
+            if (mMediaController != null) mMediaController.hide();
+            if (mLivePlayer != null) {
+                mLivePlayer.setDisplay(null);
+            }
+        }
+    };
+
 
     public int getVideoWidth(){
     	return mVideoWidth;
@@ -152,7 +185,7 @@ public class VideoView extends SurfaceView implements MediaPlayerControl {
     }
 
     private void attachMediaController() {
-        if (mLivePlayer != null) {
+        if (mLivePlayer != null && mMediaController != null) {
         	mMediaController = new MediaController(getContext());
             mMediaController.setMediaPlayer(this);
             View anchorView = this.getParent() instanceof View ?
@@ -162,42 +195,6 @@ public class VideoView extends SurfaceView implements MediaPlayerControl {
         }
     }
 
-    SurfaceHolder.Callback mSHCallback = new SurfaceHolder.Callback() {
-        @Override
-        public void surfaceChanged(SurfaceHolder holder, int format,
-                                    int w, int h) {
-        	Log.d(TAG, "surfaceChanged, format="+format+", w="+w+", h="+h);
-            if (mLivePlayer != null && mVideoWidth == w && mVideoHeight == h) {
-                //mLivePlayer.start();
-                if (mMediaController != null) {
-                    mMediaController.show();
-                }
-            }
-        }
-
-        @Override
-        public void surfaceCreated(SurfaceHolder holder) {
-        	Log.d(TAG, "surfaceCreated, holder="+holder);
-            mSurfaceHolder = holder;
-            if(mLivePlayer != null)
-            {
-            	mLivePlayer.setDisplay(mSurfaceHolder);
-            }
-        }
-
-        @Override
-        public void surfaceDestroyed(SurfaceHolder holder) {
-            // after we return from this we can't use the surface any more
-        	Log.d(TAG, "surfaceDestroyed, holder="+holder);
-            mSurfaceHolder = null;
-            if (mMediaController != null) mMediaController.hide();
-            if (mLivePlayer != null) {
-            	mLivePlayer.setDisplay(null);
-            }
-        }
-    };
-    
-    static int sDisplayType = 0;
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
         if (mLivePlayer != null && mMediaController != null) {
@@ -235,7 +232,7 @@ public class VideoView extends SurfaceView implements MediaPlayerControl {
 
     @Override
     public void start() {
-        if (mLivePlayer != null) {
+        if (mLivePlayer != null && !mLivePlayer.isPlaying()) {
         	mLivePlayer.start();
         }
     }
@@ -316,5 +313,11 @@ public class VideoView extends SurfaceView implements MediaPlayerControl {
 	public int getAudioSessionId() {
 		return 0;
 	}
+
+    public void stop() {
+        if (mLivePlayer != null) {
+            mLivePlayer.stop();
+        }
+    }
 
 }

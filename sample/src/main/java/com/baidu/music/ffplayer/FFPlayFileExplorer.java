@@ -12,6 +12,8 @@ import android.view.View;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.baidu.music.ffplaylib.jni.SDLActivity;
+
 public class FFPlayFileExplorer extends ListActivity {
 
 private static final String TAG = "FFMpegFileExplorer";
